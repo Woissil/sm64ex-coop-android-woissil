@@ -1618,8 +1618,6 @@ s32 init_level(void) {
                 val4 = 1;
             }
         }
-    }
-}        
    
         if (val4 != 0) {
             play_transition(WARP_TRANSITION_FADE_FROM_COLOR, 0x5A, 0xFF, 0xFF, 0xFF);
