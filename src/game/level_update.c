@@ -1581,36 +1581,46 @@ s32 init_level(void) {
         if (gCurrentArea != NULL) {
             reset_camera(gCurrentArea->camera);
 
-            if (gCurrDemoInput != NULL) {
+               if (gCurrDemoInput != NULL) {
+    set_mario_action(gMarioState, ACT_IDLE, 0);
+} else if (!gDebugLevelSelect) {
+    if (gMarioState->action != ACT_UNINITIALIZED) {
+        bool skipIntro = (gNetworkType == NT_NONE || gServerSettings.skipIntro != 0);
+        if (gDjuiInMainMenu && (gNetworkType == NT_NONE)) {
+            // pick random main menu level
+            if (configMenuRandom) {
+                int lower = 0, upper = 10;
+                srand(time(0));
+                int randLevel = (rand() % (upper - lower + 1)) + lower;
+                configMenuLevel = randLevel;
+            }
+
+            if (configMenuLevel == 0 && sFirstCastleGroundsMenu) {
+                set_mario_action(gMarioState, ACT_INTRO_CUTSCENE, 7);
+            } else {
                 set_mario_action(gMarioState, ACT_IDLE, 0);
-            } else if (!gDebugLevelSelect) {
-                if (gMarioState->action != ACT_UNINITIALIZED) {
-                    bool skipIntro = (gNetworkType == NT_NONE || gServerSettings.skipIntro != 0);
-                    if (gDjuiInMainMenu && (gNetworkType == NT_NONE)) {
-                        // pick random main menu level
-                        if (configMenuRandom) {
-                            int lower = 0, upper = 10;
-                            srand(time(0));
-                            int randLevel = (rand() % (upper - lower + 1)) + lower;
-                            configMenuLevel = randLevel;
-                        }
+            }
 
-                        if (configMenuLevel == 0 && sFirstCastleGroundsMenu) {
-                            set_mario_action(gMarioState, ACT_INTRO_CUTSCENE, 7);
-                        } else {
-                            set_mario_action(gMarioState, ACT_IDLE, 0);
-                        }
-
-                    } else if (skipIntro || save_file_exists(gCurrSaveFileNum - 1)) {
-                        set_mario_action(gMarioState, ACT_IDLE, 0);
-                    } else {
-                        set_mario_action(gMarioState, ACT_INTRO_CUTSCENE, 0);
-                        val4 = 1;
-                    }
+        } else {
+            // Check if a valid save file exists
+            bool validSaveFileExists = false;
+            int i;
+            for (i = 0; i < NUM_SAVE_FILES; i++) {
+                if (save_file_exists(i)) {
+                    validSaveFileExists = true;
+                    break;
                 }
             }
+            if (skipIntro || validSaveFileExists) {
+                set_mario_action(gMarioState, ACT_IDLE, 0);
+            } else {
+                set_mario_action(gMarioState, ACT_INTRO_CUTSCENE, 0);
+                val4 = 1;
+            }
         }
-
+    }
+}        
+   
         if (val4 != 0) {
             play_transition(WARP_TRANSITION_FADE_FROM_COLOR, 0x5A, 0xFF, 0xFF, 0xFF);
         } else {
